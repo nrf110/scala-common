@@ -1,0 +1,5 @@
+.idea
+.sbtserver
+**target
+project/project
+project/.sbtserver.lock
