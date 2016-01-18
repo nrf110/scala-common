@@ -2,9 +2,9 @@ import sbt._
 import Keys._
 
 object Common {
-  val version       = "0.1.0"
+  val version       = "0.1.1"
   val scalaVersion  = "2.11.7"
-  val akkaVersion   = "2.3.11"
+  val akkaVersion   = "2.4.1"
   val organization  = "com.github.nrf110"
   val scalacOptions = Seq("-deprecation", "-encoding", "utf8")
   val dependencies  = Seq(
