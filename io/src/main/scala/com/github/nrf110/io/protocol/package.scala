@@ -1,6 +1,6 @@
 package com.github.nrf110.io
 
-import akka.util.ByteString
+import akka.util.{ByteStringBuilder, ByteString}
 
 import scala.annotation.tailrec
 
@@ -188,12 +188,29 @@ package object protocol {
     }
   }
 
-  trait Implicits {
-    implicit val byteStringEncoder: Encoder[ByteString] = Encoder[ByteString](identity)
-    implicit def optionEncoder[A](implicit encoder: Encoder[A]): Encoder[Option[A]] = Encoder[Option[A]] { opt =>
-      opt.fold(ByteString.empty)(encoder.apply)
-    }
+  trait EncoderField[A] {
+    def apply(builder: ByteStringBuilder)(a: A): Unit
   }
 
-  object Implicits extends Implicits
+  trait EncoderBuilder[A] {
+    def andThen(field: EncoderField[A]): EncoderBuilder[A]
+    def build(): Encoder[A]
+  }
+
+  object EncoderBuilder {
+    def builder[A]: EncoderBuilder[A] = ImmutableEncoderBuilder(Vector.empty[EncoderField[A]])
+  }
+
+  case class ImmutableEncoderBuilder[A] private[protocol](fields: Vector[EncoderField[A]])
+    extends EncoderBuilder[A] {
+    def andThen(field: EncoderField[A]): EncoderBuilder[A] = copy[A](fields = field +: this.fields)
+    def build(): Encoder[A] = Encoder[A] { a =>
+      val builder = fields.foldRight(ByteString.newBuilder) { case (field, bldr) =>
+        field(bldr)(a)
+        bldr
+      }
+
+      builder.result()
+    }
+  }
 }
