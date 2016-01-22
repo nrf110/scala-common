@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 
 object Common {
-  val version       = "0.2.2"
+  val version       = "0.2.3"
   val scalaVersion  = "2.11.7"
   val akkaVersion   = "2.4.1"
   val organization  = "com.github.nrf110"

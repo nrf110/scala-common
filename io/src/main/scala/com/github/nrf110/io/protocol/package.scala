@@ -201,8 +201,8 @@ package object protocol {
 
   trait EncoderBuilder[A] {
     def andThen(field: EncoderField[A]): EncoderBuilder[A]
-    def andThen[B](extractor: A => B)(implicit fieldEncoder: EncoderField[B]): EncoderField[A] =
-      EncoderField(extractor)
+    def andThen[B](extractor: A => B)(implicit fieldEncoder: EncoderField[B]): EncoderBuilder[A] =
+      andThen(EncoderField(extractor))
     def build(): Encoder[A]
   }
 
