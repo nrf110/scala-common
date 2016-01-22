@@ -188,8 +188,15 @@ package object protocol {
     }
   }
 
-  trait EncoderField[A] {
-    def apply(builder: ByteStringBuilder)(a: A): Unit
+  type EncoderField[A] = ByteStringBuilder => A => Unit
+  object EncoderField {
+    def apply[Input, Field](extractor: Input => Field)(implicit fieldEncoder: EncoderField[Field]): EncoderField[Input] =
+      new EncoderField[Input] {
+        def apply(builder: ByteStringBuilder): Input => Unit = { input: Input =>
+          val field = extractor(input)
+          fieldEncoder(builder)(field)
+        }
+      }
   }
 
   trait EncoderBuilder[A] {
@@ -213,4 +220,24 @@ package object protocol {
       builder.result()
     }
   }
+
+  trait Implicits {
+    implicit val byteStringEncoderField: EncoderField[ByteString] = {
+      builder: ByteStringBuilder =>
+        {
+          bytes: ByteString =>
+            builder ++= bytes
+        }
+    }
+
+    implicit def optionEncoderField[A](implicit encoderField: EncoderField[A]): EncoderField[Option[A]] = {
+      builder: ByteStringBuilder =>
+        {
+          a: Option[A] =>
+            a.foreach(encoderField(builder))
+        }
+    }
+  }
+
+  object Implicits extends Implicits
 }
